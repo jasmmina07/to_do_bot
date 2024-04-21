@@ -25,12 +25,13 @@ def ask_question2(update: Update, context: CallbackContext) -> int:
     return ASK_QUESTION3
 
 def ask_question3(update: Update, context: CallbackContext) -> int:
-    data["until"] = update.message.text
-    # Process the collected data
-    print("Data:", data)
-    data["added_time"]=db.time_now()
+    data["until"]      = update.message.text
+    data["added_time"] = db.time_now()
+    data["completed"]  = False
+
     db.add_task_db(data)
     update.message.reply_text("Vazifa muvaffaqiyatli saqlandi!")
+    
     return ConversationHandler.END
 
 def main():
@@ -50,7 +51,9 @@ def main():
     dispatcher.add_handler(CommandHandler("start", handlers.start_home))
     dispatcher.add_handler(MessageHandler(Filters.regex(r"^Vazifalarim$"), handlers.tasks))  # Assuming tasks function is defined
     dispatcher.add_handler(conv_handler)
-    dispatcher.add_handler(CallbackQueryHandler(handlers.task))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.task, pattern="task_id:"))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.remove_task, pattern="remove:"))
+    dispatcher.add_handler(CallbackQueryHandler(handlers.done_task, pattern="done:"))
     # Add more handlers as needed, e.g., CallbackQueryHandler
 
     updater.start_polling()
